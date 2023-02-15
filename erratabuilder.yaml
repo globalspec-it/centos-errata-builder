@@ -1,0 +1,60 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: centos7-errata-builder
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 360
+      parallelism: 1
+      template:
+        spec:
+          affinity: {}
+          containers:
+          - args:
+            - /entrypoint
+            command:
+            - /bin/sh
+            env:
+            - name: S3_URI
+              valueFrom:
+                secretKeyRef:
+                  key: S3_URI
+                  name: centos7-errata-builder
+                  optional: false
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  key: AWS_ACCESS_KEY_ID
+                  name: centos7-errata-builder
+                  optional: false
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: AWS_SECRET_ACCESS_KEY
+                  name: centos7-errata-builder
+                  optional: false
+            - name: AWS_DEFAULT_REGION
+              valueFrom:
+                secretKeyRef:
+                  key: AWS_DEFAULT_REGION
+                  name: centos7-errata-builder
+                  optional: false
+            image: globalspecllc/it-katello-erratabuilder:v0.0.2
+            imagePullPolicy: IfNotPresent
+            name: errata-builder
+            resources: {}
+            terminationMessagePath: /dev/termination-log
+            terminationMessagePolicy: File
+          dnsPolicy: ClusterFirst
+          imagePullSecrets:
+          - name: dockerhub-regcred
+          restartPolicy: Never
+          schedulerName: default-scheduler
+          securityContext: {}
+          terminationGracePeriodSeconds: 30
+  schedule: 0 0 * * 0
+  successfulJobsHistoryLimit: 3
+  suspend: true
